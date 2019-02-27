@@ -124,6 +124,7 @@ export default {
     border-radius: 8px
     background: #292A30
     color: #F4F5F5
+    overflow-x: auto
     code
       font-size: 14px
   code
@@ -137,4 +138,8 @@ export default {
     color: #FB78B0
   .hljs-string
     color: #FA7E6E
+  .hljs-number
+    color: #A79DF7
+  .hljs-built_in
+    color: #A7EBDD
 </style>

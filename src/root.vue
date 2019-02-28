@@ -6,11 +6,13 @@
       :currentPage="currentPage"
       @choose="choosePage"
     )
-    page-view(
-      class="view"
-      :currentPage="currentPage"
-      @link="link"
-    )
+    transition(name="slide-up")
+      page-view(
+        class="view"
+        v-if="currentPageData"
+        :currentPage="currentPageData"
+        @link="link"
+      )
 </template>
 
 <script>
@@ -25,10 +27,16 @@ export default {
   },
   methods: {
     async choosePage(page) {
-      var res = await Axios.get(this.currentSource.rootURL + '/' + this.currentVersion + '/' + page.path)
-      page.data = res.data
+      this.currentPageData = null
       this.currentPage = page
-      history.pushState(null, null, '/' + page.path)
+      history.pushState(null, null, page.path)
+      if (page.parentTitle) {
+        document.title = `Docs → ${page.parentTitle} → ${page.title}`
+      } else {
+        document.title = `Docs → ${page.title}`
+      }
+      var res = await Axios.get(this.currentSource.rootURL + this.currentVersion + page.path + '.md')
+      this.currentPageData = res.data
     },
     async chooseSource(source, version = null) {
       if (!version) {
@@ -36,12 +44,17 @@ export default {
       }
       this.currentSource = source
       this.currentVersion = version
-      var res = await Axios.get(source.rootURL + '/' + version + '/' + 'manifest.yml')
+      var res = await Axios.get(source.rootURL + '/' + version + '/' + 'manifest.yml?1')
       var manifest = JSYaml.load(res.data)
       this.manifest = manifest
       var page = null
       if (window.location.pathname) {
-        page = this.findPageWithPath(window.location.pathname.substr(1))
+        var found = this.findPageWithPath(window.location.pathname)
+        if (!found) {
+          page = this.pages[0]
+        } else {
+          page = found
+        }
       } else {
         page = this.pages[0]
       }
@@ -51,7 +64,14 @@ export default {
       if (a.hostname != 'localhost') {
         window.location.href = a.href
       } else {
-        let page = this.findPageWithPath(a.pathname.substr(1))
+        var path = a.pathname
+        if (path.endsWith('.md')) {
+          path = path.split('.md').slice(0, -1).join()
+        }
+        let page = this.findPageWithPath(path)
+        if (!page) {
+          throw new Error('No page found for link: ' + a)
+        }
         await this.choosePage(page)
       }
     },
@@ -78,20 +98,23 @@ export default {
         return []
       }
 
-      function parsePage(page) {
+      function parsePage(page, parent) {
         var key = Object.keys(page)[0]
         var item = page[key]
         var data = {
           title: key,
           path: item
         }
+        if (parent) {
+          data.parentTitle = parent.title
+        }
         if(Array.isArray(item)) {
-          data.children = item.map(page => parsePage(page))
+          data.children = item.map(page => parsePage(page, data))
         }
         return data
       }
 
-      return this.manifest.nav.map(page => parsePage(page))
+      return this.manifest.nav.map(page => parsePage(page, null))
     },
   },
   data() {
@@ -99,16 +122,38 @@ export default {
       manifest: null,
       currentSource: null,
       currentVersion: null,
-      currentPage: null
+      currentPage: null,
+      currentPageData: null
     }
   }
 }
 </script>
 
 <style scoped lang="sass">
+@import "@/assets/base.sass"
+
+.appear-up-enter-active, .appear-up-leave-active
+  transition: opacity $animation-duration $animation-ease, transform $animation-duration $animation-ease
+.appear-up-enter, .appear-up-leave-to
+  opacity: 0
+  transform: scale(0.9)
+
+.appear-down-enter-active, .appear-down-leave-active
+  transition: opacity $animation-duration $animation-ease, transform $animation-duration $animation-ease
+.appear-down-enter, .appear-down-leave-to
+  opacity: 0
+  transform: scale(1.1)
+
+.slide-up-enter-active, .slide-up-leave-active
+  transition: opacity $animation-duration $animation-ease, transform $animation-duration $animation-ease
+.slide-up-enter, .slide-up-leave-to
+  opacity: 0
+  transform: translate(0, 32px)
+
 .app
   height: 100%
   position: relative
+  overflow: hidden
   .menu
     position: absolute
     top: 0

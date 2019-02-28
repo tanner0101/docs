@@ -24,7 +24,7 @@ export default {
           return HighlightJS.highlightAuto(string).value
         }
       })
-      return md.render(this.currentPage.data)
+      return md.render(this.currentPage)
     },
   },
   watch: {

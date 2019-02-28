@@ -20,6 +20,12 @@
       * {
         box-sizing: border-box;
       }
+      @supports (-webkit-backdrop-filter: blur(10px)) {
+        .app .nav {
+          background: rgba(255, 255, 255, 0.9)!important;
+          -webkit-backdrop-filter: blur(10px) saturate(150%);
+        }
+      }
     </style>
   </head>
   <body>

@@ -1,18 +1,25 @@
 <template lang="pug">
   .app
-    page-menu(
-      class="menu"
-      :pages="pages"
-      :currentPage="currentPage"
-      @choose="choosePage"
-    )
-    transition(name="slide-up")
-      page-view(
-        class="view"
-        v-if="currentPageData"
-        :currentPage="currentPageData"
-        @link="link"
+    .nav
+      .wrapper
+        a.logo(href="/")
+          img(src="@/assets/vapor-logo.png")
+          h1 Docs
+    .wrapper
+      page-menu(
+        class="menu"
+        :pages="pages"
+        :currentPage="currentPage"
+        @choose="choosePage"
       )
+      transition(name="slide-up")
+        page-view(
+          class="view"
+          ref="view"
+          v-if="currentPageData"
+          :currentPage="currentPageData"
+          @link="link"
+        )
 </template>
 
 <script>
@@ -37,6 +44,7 @@ export default {
       }
       var res = await Axios.get(this.currentSource.rootURL + this.currentVersion + page.path + '.md')
       this.currentPageData = res.data
+      document.body.scrollTop = document.documentElement.scrollTop = 0
     },
     async chooseSource(source, version = null) {
       if (!version) {
@@ -129,7 +137,7 @@ export default {
 }
 </script>
 
-<style scoped lang="sass">
+<style lang="sass">
 @import "@/assets/base.sass"
 
 .appear-up-enter-active, .appear-up-leave-active
@@ -151,24 +159,44 @@ export default {
   transform: translate(0, 32px)
 
 .app
-  height: 100%
-  position: relative
-  overflow: hidden
+  padding-top: 64px
+  padding-bottom: 32px
+  .nav
+    position: fixed
+    top: 0
+    left: 0 
+    right: 0
+    height: 64px
+    z-index: 2
+    background: white
+    box-shadow: $shadow-2
+    .logo
+      line-height: 64px
+      display: flex
+      align-items: center
+      text-decoration: none
+      color: $color-black
+      img
+        height: 32px
+        margin-right: 8px
+      h1
+        margin: 0
+  .wrapper
+    margin: 0 auto
+    max-width: 1220px
+    position: relative
+    padding: 0 32px
   .menu
     position: absolute
-    top: 0
-    left: 0
-    bottom: 0
+    top: 24px
+    left: 32px
     width: 224px
-    overflow-y: auto
+    float: left
     z-index: 1
+    margin-bottom: 64px
   .view
-    position: absolute
-    top: 0
-    left: 224px
-    right: 0
-    bottom: 0
+    overflow: hidden
+    margin-left: 224px
     padding: 0 16px
-    overflow-y: auto
     z-index: 0
 </style>

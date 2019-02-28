@@ -20,9 +20,9 @@ export default {
 @import "@/assets/base.sass"
 
 .page-menu
-  padding: 16px 0
+  padding: 0
   ul
     list-style-type: none
     margin: 0
-    padding-left: 16px
+    padding: 0
 </style>
